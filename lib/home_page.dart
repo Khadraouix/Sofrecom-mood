@@ -23,12 +23,11 @@ class _HomePageState extends State<HomePage> {
   bool _showDescriptionError = false;
   bool _showEmojiError = false;
 
-  // Define the reactions list with emojis
   List<String> emojis = [
-    "😄", // Happy emoji
-    "😢", // Sad emoji
-    "😐", // Neutral emoji
-    "😠", // Angry emoji
+    "😄",
+    "😢",
+    "😐",
+    "😠",
   ];
 
   @override
@@ -54,8 +53,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        LoginScreen()), // Replace with your actual LoginScreen class
+                  builder: (context) => LoginScreen(),
+                ),
               );
             },
             icon: Icon(Icons.exit_to_app),
@@ -113,7 +112,8 @@ class _HomePageState extends State<HomePage> {
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50)),
+                  borderRadius: BorderRadius.circular(50),
+                ),
                 primary: Color(0xFFFBF8BE),
               ),
               child: _reaction == Reaction.none
@@ -127,7 +127,6 @@ class _HomePageState extends State<HomePage> {
                     ),
             ),
             SizedBox(height: 16),
-            // Description area
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -135,9 +134,10 @@ class _HomePageState extends State<HomePage> {
                   const Text(
                     'Description:',
                     style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFBF8BE)),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFBF8BE),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   AnimatedContainer(
@@ -152,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       controller: _descriptionController,
                       style: TextStyle(color: Color(0xFFFBF8BE)),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Enter your description here',
                         hintStyle: TextStyle(color: Color(0xFFFBF8BE)),
                         border: InputBorder.none,
@@ -166,35 +166,39 @@ class _HomePageState extends State<HomePage> {
                     style: ElevatedButton.styleFrom(
                       primary: Color(0xFFFBF8BE),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Validate',
                       style: TextStyle(color: Color(0xFF234E70)),
                     ),
                   ),
-                  if (_showDescriptionError)
-                    AnimatedOpacity(
-                      duration: Duration(milliseconds: 200),
-                      opacity: _showDescriptionError ? 1.0 : 0.0,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Please enter a description',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
+                  Column(
+                    children: [
+                      if (_showDescriptionError)
+                        AnimatedOpacity(
+                          duration: Duration(milliseconds: 200),
+                          opacity: _showDescriptionError ? 1.0 : 0.0,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              'Please enter a description',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  if (_showEmojiError)
-                    AnimatedOpacity(
-                      duration: Duration(milliseconds: 200),
-                      opacity: _showEmojiError ? 1.0 : 0.0,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Please select a reaction',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
+                      if (_showEmojiError)
+                        AnimatedOpacity(
+                          duration: Duration(milliseconds: 200),
+                          opacity: _showEmojiError ? 1.0 : 0.0,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              'Please select a reaction',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -248,36 +252,34 @@ class _HomePageState extends State<HomePage> {
         final currentDate = DateTime.now();
 
         final apiService = ApiService();
-        final success = await apiService.saveReactionData(
-            matricule, reactionId, description, currentDate);
+        final responseText = await apiService.saveReactionData(
+          matricule,
+          reactionId,
+          description,
+          currentDate,
+        );
 
-        print('Response Status Code: $success'); // Print the success value
-        if (success) {
-          final responseText =
-              success as String; // Success value should be the response text
-          if (responseText.contains('Mood added successfully')) {
-            // Show the success alert
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.success,
-              text: 'Form Submitted Successfully!',
-              textColor: const Color(0xFF234E70),
-              backgroundColor: const Color(0xFFFBF8BE),
-            );
+        print('Response Body: $responseText');
 
-            setState(() {
-              _reaction = Reaction.none;
-              _reactionView = false;
-              _descriptionController.clear();
-              _showDescriptionError = false;
-              _showEmojiError = false;
-            });
-          } else {
-            // Handle other responses or errors
-            // ...
-          }
+        if (responseText.contains('mood added successfully')) {
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            text: 'Mood Submitted Successfully!',
+            textColor: const Color(0xFF234E70),
+            backgroundColor: const Color(0xFFFBF8BE),
+          );
+
+          setState(() {
+            _reaction = Reaction.none;
+            _reactionView = false;
+            _descriptionController.clear();
+            _showDescriptionError = false;
+            _showEmojiError = false;
+          });
         } else {
-          print('Failed to save data to the database.');
+          // Handle other responses or errors
+          // ...
         }
       } catch (error, stackTrace) {
         print('Error: $error');
@@ -290,7 +292,7 @@ class _HomePageState extends State<HomePage> {
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8081/Humeur_salarie/api';
 
-  Future<bool> saveReactionData(
+  Future<String> saveReactionData(
     String matricule,
     int reactionId,
     String description,
@@ -311,19 +313,18 @@ class ApiService {
       );
 
       print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}'); // Print the response body
+      print('Response Body: ${response.body}');
 
-      if (response.statusCode >= 200) {
-        final data = json.decode(response.body);
-        return data['success'] ?? false;
+      if (response.statusCode == 200) {
+        final responseText = response.body.toLowerCase();
+        return responseText;
       } else {
         print('Data save failed. Status Code: ${response.statusCode}');
-        print('Response Body: ${response.body}');
-        return false;
+        return 'Data save failed';
       }
     } catch (e) {
       print('Error during data save: $e');
-      return false;
+      return 'Error during data save';
     }
   }
 }
