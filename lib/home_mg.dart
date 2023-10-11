@@ -90,40 +90,34 @@ class _MyAppState extends State<MyApp> {
     String date = dateController.text.toLowerCase();
 
     // Filter the data based on search criteria
-    filteredData = tableData.where((item) {
-      bool matchMatricule = item.matricule.toLowerCase().contains(matricule);
-      //bool matchDate = item.date.toLowerCase().contains(date);
-      bool matchDate =
-          item.date.toString().toLowerCase().contains(date.toLowerCase());
+    setState(() {
+      filteredData = tableData.where((item) {
+        bool matchMatricule = item.matricule.toLowerCase().contains(matricule);
+        bool matchDate =
+            item.date.toString().toLowerCase().contains(date.toLowerCase());
 
-      return matchMatricule && matchDate;
-    }).toList();
+        return matchMatricule && matchDate;
+      }).toList();
+    });
   }
-
-  List<dynamic> users = [];
-  List<dynamic> Moods = [];
 
   @override
   void initState() {
     super.initState();
-    filteredData = List.from(
-        tableData); // Initialize filteredData with all tableData items
+    fetchData();
+  }
 
-    ApiService.fetchUsers().then((value) {
-      List<TableItem> items = value.map((user) {
-        return TableItem(
-          matricule: user.user.matricule,
-          nom: user.user.nom,
-          prenom: user.user.prenom,
-          humeur: user.humeur.libHumeur,
-          description: user.description,
-          date: user.dateHumeur,
-        );
-      }).toList();
-
-      filteredData = items;
-      return items;
-    });
+  Future<void> fetchData() async {
+    try {
+      List<TableItem> items = await ApiService.fetchUsers();
+      setState(() {
+        tableData.clear(); // Clear existing data
+        tableData.addAll(items); // Add new data
+        filteredData = List.from(tableData); // Reset filteredData
+      });
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
   }
 
   @override
@@ -138,23 +132,15 @@ class _MyAppState extends State<MyApp> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: matriculeController,
-                    style: TextStyle(
-                        color:
-                            Color(0xFFFBF8BE)), // Set text color to Pale Yellow
+                    style: TextStyle(color: Color(0xFFFBF8BE)),
                     decoration: InputDecoration(
                       labelText: "Search by matricule",
-                      labelStyle: TextStyle(
-                          color: Color(
-                              0xFFFBF8BE)), // Set label color to Pale Yellow
+                      labelStyle: TextStyle(color: Color(0xFFFBF8BE)),
                       enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Color(
-                                0xFFFBF8BE)), // Set underline color to Pale Yellow
+                        borderSide: BorderSide(color: Color(0xFFFBF8BE)),
                       ),
                       focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Color(
-                                0xFFFBF8BE)), // Set focused underline color to Pale Yellow
+                        borderSide: BorderSide(color: Color(0xFFFBF8BE)),
                       ),
                     ),
                   ),
@@ -165,23 +151,15 @@ class _MyAppState extends State<MyApp> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: dateController,
-                    style: TextStyle(
-                        color:
-                            Color(0xFFFBF8BE)), // Set text color to Pale Yellow
+                    style: TextStyle(color: Color(0xFFFBF8BE)),
                     decoration: InputDecoration(
                       labelText: "Search by date",
-                      labelStyle: TextStyle(
-                          color: Color(
-                              0xFFFBF8BE)), // Set label color to Pale Yellow
+                      labelStyle: TextStyle(color: Color(0xFFFBF8BE)),
                       enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Color(
-                                0xFFFBF8BE)), // Set underline color to Pale Yellow
+                        borderSide: BorderSide(color: Color(0xFFFBF8BE)),
                       ),
                       focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Color(
-                                0xFFFBF8BE)), // Set focused underline color to Pale Yellow
+                        borderSide: BorderSide(color: Color(0xFFFBF8BE)),
                       ),
                     ),
                   ),
@@ -193,12 +171,11 @@ class _MyAppState extends State<MyApp> {
                   setState(() {});
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xFFFBF8BE), // Set button color to Pale Yellow
+                  primary: Color(0xFFFBF8BE),
                 ),
                 child: Text(
                   "Search",
-                  style: TextStyle(
-                      color: Color(0xFF234E70)), // Set text color to Royal Blue
+                  style: TextStyle(color: Color(0xFF234E70)),
                 ),
               ),
             ],
@@ -221,8 +198,7 @@ class _MyAppState extends State<MyApp> {
                       });
                     },
                     child: Card(
-                      color: Color(
-                          0xFF234E70), // Set card background color to Royal Blue
+                      color: Color(0xFF234E70),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
@@ -240,7 +216,6 @@ class _MyAppState extends State<MyApp> {
                                       style: TextStyle(
                                           fontSize: 18,
                                           color: Color(0xFFFBF8BE))),
-                                  // Set text color to Pale Yellow
                                 ),
                                 if (isSelected)
                                   Column(
@@ -250,15 +225,12 @@ class _MyAppState extends State<MyApp> {
                                       Text('Matricule: ${item.matricule}',
                                           style: TextStyle(
                                               color: Color(0xFFFBF8BE))),
-
                                       Text('Description: ${item.description}',
                                           style: TextStyle(
-                                              color: Color(
-                                                  0xFFFBF8BE))), // Set text color to Pale Yellow
+                                              color: Color(0xFFFBF8BE))),
                                       Text('Date: ${item.date}',
                                           style: TextStyle(
-                                              color: Color(
-                                                  0xFFFBF8BE))), // Set text color to Pale Yellow
+                                              color: Color(0xFFFBF8BE))),
                                     ],
                                   ),
                               ],
@@ -279,49 +251,54 @@ class _MyAppState extends State<MyApp> {
 class ApiService {
   static const String baseUrl =
       'http://10.0.2.2:8081/Humeur_salarie/api/allmoods';
-  static Future<List<MoodData>> fetchUsers() async {
-    final response = await http.get(Uri.parse(baseUrl));
+  static Future<List<TableItem>> fetchUsers() async {
+    try {
+      final response = await http.get(Uri.parse(baseUrl));
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      List<MoodData> moodDataList = [];
-      print(data);
-      for (var item in data) {
-        var userJson = item['user'];
-        var departementJson = userJson['departement'];
-        var humeurJson = item['humeur'];
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<TableItem> moodDataList = [];
 
-        var user = User(
-          id: userJson['id'],
-          matricule: userJson['matricule'],
-          nom: userJson['nom'],
-          prenom: userJson['prenom'],
-          mdp: userJson['mdp'],
-          role: userJson['role'],
-          departement: Departement(
-            idDep: departementJson['id_dep'],
-            libDep: departementJson['lib_dep'],
-          ),
-        );
+        for (var item in data) {
+          var userJson = item['user'];
+          var departementJson = userJson['departement'];
+          var humeurJson = item['humeur'];
 
-        var humeur = Humeur(
-          id: humeurJson['id'],
-          libHumeur: humeurJson['lib_humeur'],
-        );
+          var user = User(
+            id: userJson['id'],
+            matricule: userJson['matricule'],
+            nom: userJson['nom'],
+            prenom: userJson['prenom'],
+            mdp: userJson['mdp'],
+            role: userJson['role'],
+            departement: Departement(
+              idDep: departementJson['id_dep'],
+              libDep: departementJson['lib_dep'],
+            ),
+          );
 
-        var moodData = MoodData(
-          id: item['id'],
-          user: user,
-          humeur: humeur,
-          description: item['description'],
-          dateHumeur: DateTime.parse(item['date_humeur']),
-        );
+          var humeur = Humeur(
+            id: humeurJson['id'],
+            libHumeur: humeurJson['lib_humeur'],
+          );
 
-        moodDataList.add(moodData);
+          var moodData = TableItem(
+            matricule: user.matricule,
+            nom: user.nom,
+            prenom: user.prenom,
+            humeur: humeur.libHumeur,
+            description: item['description'],
+            date: DateTime.parse(item['date_humeur']),
+          );
+
+          moodDataList.add(moodData);
+        }
+        return moodDataList;
+      } else {
+        throw Exception('Failed to fetch data');
       }
-      return moodDataList;
-    } else {
-      throw Exception('Failed to fetch data');
+    } catch (e) {
+      throw Exception('Error fetching data: $e');
     }
   }
 }
@@ -363,21 +340,5 @@ class Humeur {
   Humeur({
     required this.id,
     required this.libHumeur,
-  });
-}
-
-class MoodData {
-  final int id;
-  final User user;
-  final Humeur humeur;
-  final String description;
-  final DateTime dateHumeur;
-
-  MoodData({
-    required this.id,
-    required this.user,
-    required this.humeur,
-    required this.description,
-    required this.dateHumeur,
   });
 }
